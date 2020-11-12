@@ -104,13 +104,16 @@ int main()
         Mat color_image(Size(color_w,color_h),
                                 CV_8UC3,(void*)color_frame.get_data(),Mat::AUTO_STEP);
 
-        ball_color = PINK;
+        ball_color = BLACK;
         switch (ball_color){
             case PINK :
                 //HSV滤色的参数设定
-                  hmin_Max = 261;  hmax_Max = 360;
-                  smin_Max = 47 ;  smax_Max = 255;
-                  vmin_Max = 0  ;  vmax_Max = 255;
+                  hmin_Max = 261;  
+                  hmax_Max = 360;
+                  smin_Max = 47 ;  
+                  smax_Max = 255;
+                  vmin_Max = 0  ;  
+                  vmax_Max = 255;
                 //霍夫参数设定
                   hough_minDist = 75;          //圆心之间的最小距离= 70
                   hough_canny = 20;            //canny边缘检测算子的高阈值，而低阈值为高阈值的一半。= 100
@@ -120,7 +123,41 @@ int main()
                 break;
 
             case WHITE :
+                //HSV滤色的参数设定
+                hmin_Max =  0 ;  
+                hmax_Max = 360;
+                smin_Max = 0  ;  
+                smax_Max = 255;
+                vmin_Max = 0  ;  
+                vmax_Max = 100;
+                //霍夫参数设定
+                hough_minDist = 75;          //圆心之间的最小距离= 70
+                hough_canny = 20;            //canny边缘检测算子的高阈值，而低阈值为高阈值的一半。= 100
+                hough_addthersold = 40;      //检测阶段圆心的累加器阈值 是否完美的圆形 = 100
+                hough_minRadius = 0;         //有默认值0，表示圆半径的最小值= 0
+                hough_maxRadius = 30;        //有默认值0，表示圆半径的最大值= 0
+                break;
 
+            case BLUE :
+
+                break;
+            case GREEN :
+
+                break;
+            case BLACK :
+                //HSV滤色的参数设定
+                hmin_Max =  0 ;  
+                hmax_Max = 360;
+                smin_Max = 0  ;  
+                smax_Max = 255;
+                vmin_Max = 0  ;  
+                vmax_Max = 75;
+                //霍夫参数设定
+                hough_minDist = 500;          //圆心之间的最小距离= 70
+                hough_canny = 55;            //canny边缘检测算子的高阈值，而低阈值为高阈值的一半。= 100
+                hough_addthersold = 40;      //检测阶段圆心的累加器阈值 是否完美的圆形 = 100
+                hough_minRadius = 0;         //有默认值0，表示圆半径的最小值= 0
+                hough_maxRadius = 30;        //有默认值0，表示圆半径的最大值= 0
                 break;
 
             default:

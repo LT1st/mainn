@@ -61,7 +61,7 @@ vector<Vec3f> houghRound_circles(
     第九个参数，int类型的maxRadius,也有默认值0，表示圆半径的最大值。
     */
     
-    HoughCircles(dst_s, circles, HOUGH_GRADIENT, 2.5, hough_minDist, hough_canny, 
+    HoughCircles(dst_s, circles, HOUGH_GRADIENT, 2, hough_minDist, hough_canny, 
                 hough_addthersold, hough_minRadius, hough_maxRadius);
     //在图中绘制出圆
     for (size_t i = 0; i < circles.size(); i++)
