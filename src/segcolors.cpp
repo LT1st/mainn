@@ -23,8 +23,9 @@ Mat segmentation_HSV(int hmin, int hmax, int smin, int smax,
 	//颜色空间转换
 	cvtColor(hsv_bgr_gnd, hsv_hsv_gnd, COLOR_BGR2HSV);
 
-	//输出图像分配内存，新的黑色Mat
-	hsv_dst_gnd = Mat::zeros(input.size(), CV_32FC3);
+	//输出图像分配内存，新的黑色Mat:zeros  白色:
+	//hsv_dst_gnd = Mat::zeros(input.size(), CV_32FC3);
+	hsv_dst_gnd = Mat(input.size(), CV_32FC3, Scalar(255,255,255));
 	//掩码
 	Mat mask;
     //二值化
