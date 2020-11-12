@@ -1,0 +1,20 @@
+/* #include<opencv2/opencv.hpp>
+using namespace cv;
+int main()
+{
+    VideoCapture capture;
+    capture.open(1);//利用初始化的capture，打开ID为0的摄像头
+
+    namedWindow("sss");
+    Mat frame;   //定义Mat变量
+
+  while (1)
+  {
+      capture >> frame;/* code */
+      imshow("sss",frame);
+      waitKey(1);
+
+  }
+    waitKey(0);
+    return 0;
+}*/

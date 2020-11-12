@@ -1,0 +1,32 @@
+#include <iostream>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <string>
+ 
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/highgui/highgui_c.h>
+ 
+#include <librealsense2/rs.hpp>
+#include <librealsense2/rsutil.h>
+
+using namespace cv;
+using namespace std;
+
+bool realsense_info_return() try{
+    printf("width = %.2f\n", capture.get(CV_CAP_PROP_FRAME_WIDTH));
+    printf("height = %.2f\n", capture.get(CV_CAP_PROP_FRAME_HEIGHT));
+    printf("fps = %.2f\n", capture.get(CV_CAP_PROP_FPS));
+    printf("brightness = %.2f\n", capture.get(CV_CAP_PROP_BRIGHTNESS));
+    printf("contrast = %.2f\n", capture.get(CV_CAP_PROP_CONTRAST));
+    printf("saturation = %.2f\n", capture.get(CV_CAP_PROP_SATURATION));
+    printf("hue = %.2f\n", capture.get(CV_CAP_PROP_HUE));
+    printf("exposure = %.2f\n", capture.get(CV_CAP_PROP_EXPOSURE));
+    return 1;
+}
+catch{
+    return 0;
+}

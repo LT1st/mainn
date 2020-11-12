@@ -1,0 +1,3 @@
+/home/steven/code/tst/打开普通RGB摄像头、深度摄像头对齐测距/build/CMakeFiles/rebuild_cache.dir
+/home/steven/code/tst/打开普通RGB摄像头、深度摄像头对齐测距/build/CMakeFiles/Test.dir
+/home/steven/code/tst/打开普通RGB摄像头、深度摄像头对齐测距/build/CMakeFiles/edit_cache.dir

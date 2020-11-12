@@ -1,0 +1,133 @@
+// License: Apache 2.0. See LICENSE file in root directory.
+// Copyright(c) 2017 Intel Corporation. All Rights Reserved.
+
+#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include <opencv2/opencv.hpp>   // Include OpenCV API
+#include <iostream>
+#include <pcl/io/io.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+#include <opencv2/opencv.hpp>
+#include <string>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <pcl/visualization/cloud_viewer.h>//调用过程更加简单直接
+#include <pcl/visualization/pcl_visualizer.h>//visuailization methord 最强大的是PCLvisualizer
+#include <pcl/visualization/range_image_visualizer.h> //深度图可视化
+#include <pcl/console/parse.h> //命令行参数解析
+
+using namespace std;
+using namespace cv;
+// 定义点云类型
+typedef pcl::PointXYZRGBA PointT;
+typedef pcl::PointCloud<PointT> PointCloud;
+
+
+
+int main(int argc, char * argv[]) try
+{
+    // Declare depth colorizer for pretty visualization of depth data
+    rs2::colorizer color_map;
+
+    // Declare RealSense pipeline, encapsulating the actual device and sensors
+    rs2::pipeline pipe;
+    // Start streaming with default recommended configuration
+    pipe.start();
+
+    
+    const auto window_name = "Display Image";
+    namedWindow(window_name, WINDOW_AUTOSIZE);
+
+    // 相机内参
+    const double camera_factor = 1;
+    const double camera_cx = 649.402466;
+    const double camera_cy = 649.402466;
+    const double camera_fx = 640.685730;
+    const double camera_fy = 359.206085;
+
+    while (waitKey(1) < 0 && getWindowProperty(window_name, WND_PROP_AUTOSIZE) >= 0)
+    {
+        rs2::frameset data = pipe.wait_for_frames(); // Wait for next set of frames from the camera
+        rs2::frame depth = data.get_depth_frame().apply_filter(color_map);
+
+        // Query frame size (width and height)
+        const int w = depth.as<rs2::video_frame>().get_width();
+        const int h = depth.as<rs2::video_frame>().get_height();
+
+        // Create OpenCV matrix of size (w,h) from the colorized depth data
+        Mat image(Size(w, h), CV_8UC3, (void*)depth.get_data(), Mat::AUTO_STEP);
+        Mat depthe = image;
+
+        PointCloud::Ptr cloud(new PointCloud);
+         // 遍历深度图
+        for (int m = 0; m < depthe.rows; m++)
+        {
+            for (int n = 0; n < depthe.cols; n++)
+                {
+                // 获取深度图中(m,n)处的值
+                ushort d = depthe.ptr<ushort>(m)[n];
+                // d 可能没有值，若如此，跳过此点
+                if (d == 0)
+                    continue;
+                // d 存在值，则向点云增加一个点
+                PointT p;
+                if(p.y < 900)
+                {
+        
+                // 计算这个点的空间坐标
+                p.z = double(d) / camera_factor;
+                p.x = (n - camera_cx) * p.z / camera_fx;
+                p.y = (m - camera_cy) * p.z / camera_fy;
+        
+        /*        // 从rgb图像中获取它的颜色
+                // rgb是三通道的BGR格式图，所以按下面的顺序获取颜色
+                p.b = rgb.ptr<uchar>(m)[n * 3];
+                p.g = rgb.ptr<uchar>(m)[n * 3 + 1];
+                p.r = rgb.ptr<uchar>(m)[n * 3 + 2];
+        
+               
+        */
+                 // 把p加入到点云中
+                cloud->points.push_back(p);
+                //cout << cloud->points.size() << endl;
+                }
+
+                
+               }
+        }
+
+
+        cloud->height = 1;
+        cloud->width = cloud->points.size();
+        cout << "point cloud size = " << cloud->points.size() << endl;
+        cloud->is_dense = false;
+
+        //显示点云图
+        pcl::visualization::CloudViewer viewer("Simple Cloud Viewer");//直接创造一个显示窗口
+        viewer.showCloud(cloud);//再这个窗口显示点云
+        while (!viewer.wasStopped())
+        {
+        }
+        // 清除数据并退出
+        cloud->points.clear();
+        // Update the window with new data
+//           imshow(window_name, image) ;
+
+        waitKey(1);
+    }
+
+    return EXIT_SUCCESS;
+}
+catch (const rs2::error & e)
+{
+    std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+    return EXIT_FAILURE;
+}
+catch (const std::exception& e)
+{
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
+}
+
+
+

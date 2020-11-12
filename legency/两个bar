@@ -1,0 +1,154 @@
+
+#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include <opencv2/opencv.hpp>   // Include OpenCV API
+#include <iostream>
+#include <stdio.h>
+#include <pcl/io/io.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+#include <string>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <pcl/visualization/cloud_viewer.h>//调用过程更加简单直接
+#include <pcl/visualization/pcl_visualizer.h>//visuailization methord 最强大的是PCLvisualizer
+#include <pcl/visualization/range_image_visualizer.h> //深度图可视化
+#include <pcl/console/parse.h> //命令行参数解析
+#include <boost/thread/thread.hpp>
+#include <pcl/common/common_headers.h>
+#include <pcl/features/normal_3d.h>
+using namespace std;
+using namespace cv;
+
+
+int erosion_elem = 0;
+int erosion_size = 0;
+int minDist_hough = 70;
+int param1 = 50;
+int param2 = 50;
+int minRadius = 3;
+int maxRadius = 30;
+int const max_elem = 50;
+int const max_kernel_size = 50;
+
+  Mat src;    
+  Mat erosion_dst;
+  Mat element;
+  Mat element_dilate;
+/* createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Erosion Demo",
+          &erosion_elem, max_elem,
+          Erosion );
+
+createTrackbar( "Kernel size:\n 2n +1", "Erosion Demo",
+          &erosion_size, max_kernel_size,
+          Erosion ); */
+
+void Erosion( int, void* );
+
+
+/* 
+ */
+
+
+int main()
+{
+    int cntError = 0;
+    //构建一个抽象设备的管道
+    rs2::pipeline pipe;
+    //使用非默认配置文件创建配置以配置管道
+    rs2::config cfg;
+    //将所需的流添加到配置
+    cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+    //指示管道使用请求的配置开始流式传输
+    pipe.start(cfg);
+    while(1)//!viewer->wasStopped()
+    {
+
+        int Start=getTickCount()*1000/getTickFrequency();
+        // 放下几个第一帧以使自动曝光稳定
+        rs2::frameset frames;
+        
+        frames = pipe.wait_for_frames();
+        
+        //获取每个帧
+        rs2::frame color_frame = frames.get_color_frame();
+        //从彩色图像创建OpenCV矩阵
+        Mat color(Size(640, 480), CV_8UC3, (void*)color_frame.get_data(), Mat::AUTO_STEP); 
+        Mat HSVImage;
+        src = color.clone(); 
+        cvtColor(color, HSVImage,cv::COLOR_BGR2HSV);
+        cvtColor(src, src,cv::COLOR_BGR2GRAY);
+        
+        namedWindow("Display Image", WINDOW_AUTOSIZE );
+        namedWindow("Erosion Demo", WINDOW_AUTOSIZE );
+        //namedWindow("raw", WINDOW_AUTOSIZE );
+        createTrackbar( "Element:\n 0: Rect \n 1: Cross \n 2: Ellipse", "Erosion Demo",
+          &erosion_elem, max_elem, Erosion );
+
+        createTrackbar( "Kernel size:\n 2n +1", "Erosion Demo",
+          &erosion_size, max_kernel_size, Erosion );
+
+
+       // cv::createTrackbar("阈值：","边缘检测",&thresholds,100,canny_track);
+         erode( src, erosion_dst, element );
+         dilate(erosion_dst, erosion_dst, element_dilate);
+
+
+        cout << cntError << endl
+    cnt ++
+
+        //imshow("Display Image", HSVImage);
+
+
+        vector<Vec3f> circles;
+        HoughCircles(erosion_dst, circles, HOUGH_GRADIENT, 1, 50, 60, 70, 0, 40);
+        //依次在图中绘制出圆
+        for (size_t i = 0; i < circles.size(); i++)
+        {
+            //参数定义
+            Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+            int radius = cvRound(circles[i][2]);
+            //绘制圆心
+            //circle(RGBImg, center, 3, Scalar(0, 255, 0), -1, 8, 0);
+            //绘制圆轮廓
+            circle(src, center, radius, Scalar(155, 50, 255), 3, 8, 0);
+
+            int watchR1, watchR2, watchR3;
+            watchR1 = src.at<Vec3b>(center)[0];
+            watchR2 = src.at<Vec3b>(center)[1];
+            watchR3 = src.at<Vec3b>(center)[2];
+            cout << i+1 << ' ' <<watchR1 << ' ' << watchR2 << ' ' << watchR3 << endl;
+
+            //绘制圆心
+            circle(src, center, 3, Scalar(0, 255, 0), -1, 8, 0);
+        }
+cout << cntError << endl
+    cnt ++
+        //imshow("HSV图像", HSVImage);
+        //imshow("预处理", erosion_dst );
+        //imshow("原图", src);
+        //镇速率
+        int Stop=getTickCount()*1000/getTickFrequency();
+        cout << "FrameSpeed:\t" << Stop - Start << endl;
+        waitKey(1);
+    }
+    
+    return 0;
+}
+
+void Erosion( int, void* )
+{
+    int erosion_type = 0;
+    /* if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
+    else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
+    else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; } */
+    erosion_type = MORPH_ELLIPSE;
+
+    element = getStructuringElement( erosion_type,
+                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                        Point( erosion_size, erosion_size ) );
+    element_dilate = getStructuringElement(MORPH_ELLIPSE, Size(erosion_elem, erosion_elem));
+
+    /// Apply the erosion operation
+    /*  erode( src, erosion_dst, element ); */
+}
+

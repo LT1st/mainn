@@ -1,0 +1,137 @@
+// License: Apache 2.0. See LICENSE file in root directory.
+// Copyright(c) 2017 Intel Corporation. All Rights Reserved.
+
+#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include <opencv2/opencv.hpp>   // Include OpenCV API
+#include <iostream>
+#include <pcl/io/io.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+#include <opencv2/opencv.hpp>
+#include <string>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <pcl/visualization/cloud_viewer.h>//调用过程更加简单直接
+#include <pcl/visualization/pcl_visualizer.h>//visuailization methord 最强大的是PCLvisualizer
+#include <pcl/visualization/range_image_visualizer.h> //深度图可视化
+#include <pcl/console/parse.h> //命令行参数解析
+#include <pcl/io/real_sense_2_grabber.h>
+
+using namespace std;
+using namespace cv;
+// 定义点云类型
+typedef pcl::PointXYZ PointT;
+typedef pcl::PointCloud<PointT> PointCloud;
+typedef pcl::PointCloud<PointT> putput;
+
+
+boost::mutex updateModelMutex;
+
+boost::shared_ptr<pcl::visualization::PCLVisualizer> simpleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
+{
+        // --------------------------------------------
+        // -----Open 3D viewer and add point cloud-----
+        // --------------------------------------------
+        boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
+        viewer->setCameraPosition(0, 0, 0, 0, 0, 0, 0, 0, -1);
+        viewer->setBackgroundColor(0,0,0);
+        viewer->addPointCloud<pcl::PointXYZ> (cloud, "sample cloud");
+        viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
+        viewer->initCameraParameters ();
+        return (viewer);
+}
+
+void viewerRunner(boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer)
+{
+        while (!viewer->wasStopped ())
+        {
+               viewer->spinOnce (100);
+               boost::this_thread::sleep (boost::posix_time::microseconds (100));
+        }
+}
+
+void main()
+{      
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ptr (new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::PointCloud<pcl::PointXYZ> &pcloud1 = *cloud_ptr;
+        boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
+        
+        pcloud1.points.push_back( pcl::PointXYZ(10, 10, 80) );
+        pcloud1.width = cloud_ptr->size();
+        pcloud1.height = 1;
+        pcloud1.is_dense = true;
+        viewer = simpleVis(cloud_ptr);
+
+        boost::thread vthread(&viewerRunner,viewer);
+       
+        while(1)//循环抓取深度数据
+        {
+              pcloud1.clear();
+              for ( int _row = 0; _row < disp.rows; _row++ )
+              {
+                   for ( int _col = 0; _col < disp.cols; _col++ )
+                   {
+                       float x, y, z;
+                       pcl::PointXYZ ptemp(x, y, z);
+                       pcloud1.points.push_back( ptemp );
+                    }
+               }
+               pcloud1.width = cloud_ptr->size();
+               pcloud1.height = 1;
+               pcloud1.is_dense = true;
+               boost::mutex::scoped_lock updateLock(updateModelMutex);
+               viewer->updatePointCloud<pcl::PointXYZ>(cloud_ptr,"sample cloud");
+               updateLock.unlock();
+               boost::this_thread::sleep (boost::posix_time::microseconds (100));
+       }
+        vthread.joint();
+}
+//编译的报错信息：
+/*/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:31:8: error: ‘mutex’ in namespace ‘boost’ does not name a type
+ boost::mutex updateModelMutex;
+        ^~~~~
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp: In function ‘void viewerRunner(boost::shared_ptr<pcl::visualization::PCLVisualizer>)’:
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:52:23: error: ‘boost::this_thread’ has not been declared
+                boost::this_thread::sleep (boost::posix_time::microseconds (100));
+                       ^~~~~~~~~~~
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp: At global scope:
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:56:11: error: ‘::main’ must return ‘int’
+ void main()
+           ^
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp: In function ‘int main()’:
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:68:16: error: ‘thread’ is not a member of ‘boost’
+         boost::thread vthread(&viewerRunner,viewer);
+                ^~~~~~
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:68:16: note: suggested alternative: ‘throws’
+         boost::thread vthread(&viewerRunner,viewer);
+                ^~~~~~
+                throws
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:73:42: error: ‘disp’ was not declared in this scope
+               for ( int _row = 0; _row < disp.rows; _row++ )
+                                          ^~~~
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:73:42: note: suggested alternative: ‘dup’
+               for ( int _row = 0; _row < disp.rows; _row++ )
+                                          ^~~~
+                                          dup
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:85:23: error: ‘boost::mutex’ has not been declared
+                boost::mutex::scoped_lock updateLock(updateModelMutex);
+                       ^~~~~
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:87:16: error: ‘updateLock’ was not declared in this scope
+                updateLock.unlock();
+                ^~~~~~~~~~
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:88:23: error: ‘boost::this_thread’ has not been declared
+                boost::this_thread::sleep (boost::posix_time::microseconds (100));
+                       ^~~~~~~~~~~
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:90:9: error: ‘vthread’ was not declared in this scope
+         vthread.joint();
+         ^~~~~~~
+/home/steven/code/tst/video_depth2pointXYZ (Stream)/src/rs-imshow.cpp:90:9: note: suggested alternative: ‘vtkQuad’
+         vthread.joint();
+         ^~~~~~~
+         vtkQuad
+CMakeFiles/Test.dir/build.make:62: recipe for target 'CMakeFiles/Test.dir/src/rs-imshow.cpp.o' failed
+make[2]: *** [CMakeFiles/Test.dir/src/rs-imshow.cpp.o] Error 1
+CMakeFiles/Makefile2:67: recipe for target 'CMakeFiles/Test.dir/all' failed
+make[1]: *** [CMakeFiles/Test.dir/all] Error 2
+Makefile:83: recipe for target 'all' failed
+make: *** [all] Error 2*/
