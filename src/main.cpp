@@ -128,8 +128,8 @@ int main()
                 hmax_Max = 360;
                 smin_Max = 0  ;  
                 smax_Max = 255;
-                vmin_Max = 0  ;  
-                vmax_Max = 100;
+                vmin_Max = 50  ;  
+                vmax_Max = 255;
                 //霍夫参数设定
                 hough_minDist = 75;          //圆心之间的最小距离= 70
                 hough_canny = 20;            //canny边缘检测算子的高阈值，而低阈值为高阈值的一半。= 100
