@@ -25,6 +25,7 @@ vector<Vec3f> houghRound_circles(
                     5.0//大了就不连续
                     );
     cvtColor(dst_s,dst_s,COLOR_RGB2BGR); */
+    //图像使用高斯滤波的，否则会识别到噪声
     GaussianBlur(dst_s,dst_s,Size(11,11),1,1);
     namedWindow("hough_ground_高斯双边模糊");
     namedWindow("hough_ground_结果");
@@ -35,6 +36,8 @@ vector<Vec3f> houghRound_circles(
 
     //使用高斯模糊，修改卷积核ksize也可以检测出来
     //GaussianBlur(dst_s, dst_s, );
+
+    //图像直方图均值化
 
     //medianBlur(dst_s, dst_s, 5);
 
@@ -63,6 +66,14 @@ vector<Vec3f> houghRound_circles(
     
     HoughCircles(dst_s, circles, HOUGH_GRADIENT, 2, hough_minDist, hough_canny, 
                 hough_addthersold, hough_minRadius, hough_maxRadius);
+    
+    //检测houghcircle是否稳定
+    static int hough_lostCnt = 0;
+    if(circles.size() == 0 )
+    {
+        hough_lostCnt++;
+        cout << "lostCnt = " << hough_lostCnt << endl;
+    }
     //在图中绘制出圆
     for (size_t i = 0; i < circles.size(); i++)
     {
