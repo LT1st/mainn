@@ -124,18 +124,18 @@ int main()
 
             case WHITE :
                 //HSV滤色的参数设定
-                hmin_Max =  0 ;  
-                hmax_Max = 360;
-                smin_Max = 0  ;  
-                smax_Max = 255;
-                vmin_Max = 50  ;  
+                hmin_Max = 185 ;  
+                hmax_Max = 319;
+                smin_Max = 32;
+                smax_Max = 140;
+                vmin_Max = 100;  
                 vmax_Max = 255;
                 //霍夫参数设定
-                hough_minDist = 75;          //圆心之间的最小距离= 70
-                hough_canny = 20;            //canny边缘检测算子的高阈值，而低阈值为高阈值的一半。= 100
-                hough_addthersold = 40;      //检测阶段圆心的累加器阈值 是否完美的圆形 = 100
+                hough_minDist = 500;          //圆心之间的最小距离= 70
+                hough_canny = 100;            //canny边缘检测算子的高阈值，而低阈值为高阈值的一半。= 100
+                hough_addthersold = 30;      //检测阶段圆心的累加器阈值 是否完美的圆形 = 100
                 hough_minRadius = 0;         //有默认值0，表示圆半径的最小值= 0
-                hough_maxRadius = 30;        //有默认值0，表示圆半径的最大值= 0
+                hough_maxRadius = 50;        //有默认值0，表示圆半径的最大值= 0
                 break;
 
             case BLUE :
@@ -183,11 +183,14 @@ int main()
             centerLocation_x = cvRound(circles[0][0]);
             centerLocation_y = cvRound(circles[0][1]);
         }
+        else
+        {
+        }
         //测量距离
         measure_distance(color_image,result,cv::Size(20,20),profile,centerLocation_x,centerLocation_y);
         //测量角度
-        cout<<deviation_angle_x(centerLocation_x,centerLocation_y)<<"\t"<<
-        deviation_angle_y(centerLocation_x,centerLocation_y)<<endl;
+        cout << deviation_angle_x(centerLocation_x,centerLocation_y) << "\t" <<
+        deviation_angle_y(centerLocation_x,centerLocation_y) << endl;
         //显示
         imshow(depth_win,depth_image_4_show);
         imshow(color_win,color_image);
