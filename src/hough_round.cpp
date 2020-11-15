@@ -1,7 +1,7 @@
 #include "hough_round.h"
 
 /*
-补充功能：根据距离调整minDist min max
+！补充功能：根据距离调整minDist min max
 */
 vector<Vec3f> houghRound_circles(
             Mat dst_s,

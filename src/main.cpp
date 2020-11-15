@@ -38,6 +38,7 @@ int hough_maxRadius = 30;        //有默认值0，表示圆半径的最大值= 
 /* using namespace cv;
 using namespace std; */
 
+
 int main()
 {
     const char* depth_win="depth_Image1nit";
